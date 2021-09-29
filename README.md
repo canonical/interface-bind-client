@@ -20,18 +20,17 @@ requires:
     interface: bind-client
 ```
 
-## flag: {relation_name}.available
+## flag: {relation_name}.connected
 
 This flag is set when the subordinate unit is joined and removes when departed.
 
 For example, the following code will update the relation just when the relation is estabilished and the configuration changed:
 
 ```python
-if reactive.is_flag_set('bind-stats.available'):
+if reactive.is_flag_set('bind-stats.connected'):
         config = hookenv.config()
-        if config.changed("stats-port") or config.changed("stats-listen-net"):
+        if config.changed("stats-port"):
             relation_settings = {
-                'stats-listen-net': hookenv.config('stats-listen-net'),
                 'stats-port': hookenv.config('stats-port')
             }
             for rel_id in hookenv.relation_ids('bind-stats'):

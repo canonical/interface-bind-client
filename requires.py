@@ -21,15 +21,12 @@ class BindClientRequires(reactive.Endpoint):
 
     @reactive.when('endpoint.{endpoint_name}.joined')
     def joined(self):
-        reactive.set_flag(self.expand_name('{endpoint_name}.available'))
+        reactive.set_flag(self.expand_name('{endpoint_name}.connected'))
 
-    def remove(self):
-        reactive.clear_flag(self.expand_name('{endpoint_name}.available'))
-
-    @reactive.when('endpoint.{endpoint_name}.broken')
-    def broken(self):
-        self.remove()
-
-    @reactive.when('endpoint.{endpoint_name}.departed')
+    @reactive.when("endpoint.{endpoint_name}.departed")
     def departed(self):
-        self.remove()
+        reactive.clear_flag(self.expand_name("{endpoint_name}.connected"))
+
+    @reactive.when("endpoint.{endpoint_name}.broken")
+    def broken(self):
+        reactive.clear_flag(self.expand_name("{endpoint_name}.connected"))

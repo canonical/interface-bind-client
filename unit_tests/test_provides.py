@@ -40,7 +40,6 @@ class TestBindClientProvides(test_utils.PatchHelper):
         self._patches_start = {}
         self.patch_object(provides.reactive, "clear_flag")
         self.patch_object(provides.reactive, "set_flag")
-        self.patch_object(provides.reactive, "is_flag_set")
 
         self.fake_unit = mock.MagicMock()
         self.fake_unit.unit_name = "designate-bind/0"
@@ -63,42 +62,20 @@ class TestBindClientProvides(test_utils.PatchHelper):
         self._patches = None
         self._patches_start = None
 
-    def test_joined_not_available(self):
-        self.ep.set_ingress_address = mock.MagicMock()
-        self.is_flag_set.return_value = False
+    def test_joined(self):
         self.ep.joined()
         self.set_flag.assert_called_once_with(
-            "{}.available".format(self.ep_name)
+            "{}.connected".format(self.ep_name)
         )
-        self.ep.set_ingress_address.assert_called_once()
 
-    def test_joined_available(self):
-        self.ep.set_ingress_address = mock.MagicMock()
-        self.is_flag_set.return_value = True
-        self.ep.joined()
-        self.set_flag.assert_not_called()
-        self.ep.set_ingress_address.assert_not_called()
-
-    def test_departed_available(self):
-        self.is_flag_set.return_value = True
+    def test_departed(self):
         self.ep.departed()
         self.clear_flag.assert_called_once_with(
-            "{}.available".format(self.ep_name)
+            "{}.connected".format(self.ep_name)
         )
 
-    def test_departed_not_available(self):
-        self.is_flag_set.return_value = False
-        self.ep.departed()
-        self.clear_flag.assert_not_called()
-
-    def test_broken_available(self):
-        self.is_flag_set.return_value = True
+    def test_broken(self):
         self.ep.broken()
         self.clear_flag.assert_called_once_with(
-            "{}.available".format(self.ep_name)
+            "{}.connected".format(self.ep_name)
         )
-
-    def test_broken_not_available(self):
-        self.is_flag_set.return_value = False
-        self.ep.broken()
-        self.clear_flag.assert_not_called()

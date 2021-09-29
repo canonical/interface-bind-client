@@ -65,17 +65,17 @@ class TestBindClientRequires(test_utils.PatchHelper):
     def test_joined(self):
         self.ep.joined()
         self.set_flag.assert_called_once_with(
-            "{}.available".format(self.ep_name)
+            "{}.connected".format(self.ep_name)
         )
 
     def test_departed(self):
         self.ep.departed()
         self.clear_flag.assert_called_once_with(
-            "{}.available".format(self.ep_name)
+            "{}.connected".format(self.ep_name)
         )
 
     def test_broken(self):
         self.ep.broken()
         self.clear_flag.assert_called_once_with(
-            "{}.available".format(self.ep_name)
+            "{}.connected".format(self.ep_name)
         )
