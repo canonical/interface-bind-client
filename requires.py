@@ -12,17 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# NOTE(gabrielcocenza): The files provides.py and requires.py
+# are basically using the same code for the handlers. Currently,
+# the reactive framework is not able to recognise handlers from
+# a parent class that child classes could inherit.
+
 from charms import reactive
 
 
 class BindClientRequires(reactive.Endpoint):
 
-    scope = reactive.scopes.GLOBAL
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @reactive.when('endpoint.{endpoint_name}.joined')
     def joined(self):
         reactive.set_flag(self.expand_name('{endpoint_name}.connected'))
 
+    # NOTE(gabrielcocenza): The framework doesn't pass arguments to the
+    # handler using the decorator @when_any. That is why the methods
+    # departed and broken are repetitive.
     @reactive.when("endpoint.{endpoint_name}.departed")
     def departed(self):
         reactive.clear_flag(self.expand_name("{endpoint_name}.connected"))

@@ -79,3 +79,8 @@ class TestBindClientProvides(test_utils.PatchHelper):
         self.clear_flag.assert_called_once_with(
             "{}.connected".format(self.ep_name)
         )
+
+    def test_configure(self):
+        self.ep.configure('1234')
+        _calls = [mock.call("port", '1234')]
+        self.fake_relation.to_publish_raw.__setitem__.assert_has_calls(_calls)
