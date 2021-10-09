@@ -1,6 +1,6 @@
 name: bind-client
 summary: Interface for intergrating bind
-maintainer: DevOps Centres
+maintainer: Gabriel Cocenza <gabriel.cocenza@canonical.com>
 ignore:
   - unit_tests
   - .stestr.conf

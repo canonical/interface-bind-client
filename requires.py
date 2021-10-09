@@ -29,9 +29,6 @@ class BindClientRequires(reactive.Endpoint):
     def joined(self):
         reactive.set_flag(self.expand_name('{endpoint_name}.connected'))
 
-    # NOTE(gabrielcocenza): The framework doesn't pass arguments to the
-    # handler using the decorator @when_any. That is why the methods
-    # departed and broken are repetitive.
     @reactive.when("endpoint.{endpoint_name}.departed")
     def departed(self):
         reactive.clear_flag(self.expand_name("{endpoint_name}.connected"))
@@ -39,3 +36,33 @@ class BindClientRequires(reactive.Endpoint):
     @reactive.when("endpoint.{endpoint_name}.broken")
     def broken(self):
         reactive.clear_flag(self.expand_name("{endpoint_name}.connected"))
+
+    def get_config(self):
+        """
+        Returns a dict containing the ip and ports for the stats channel
+        for each unit in the relation. The default value for port is 8053
+        and IP is 127.0.0.1 .
+
+        The return value is a dict of the following form::
+            {
+                'unit_name': {
+                    'stats-port': port_of_designate_bind_unit,
+                    'stats-ip': ip_of_designate_bind_unit
+                },
+                # ...
+            }
+        """
+        configs = {}
+        for relation in self.relations:
+            for unit in relation.joined_units:
+                unit_name = unit.unit_name
+                configs.setdefault(
+                    unit_name, {"stats-port": "8053", "stats-ip": "127.0.0.1"}
+                )
+                data = unit.received_raw
+                port = data.get('stats-port')
+                ip = data.get('stats-ip')
+                if port and ip:
+                    configs[unit_name] = {'stats-port': port, 'stats-ip': ip}
+
+        return configs

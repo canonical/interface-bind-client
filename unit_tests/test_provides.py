@@ -76,11 +76,20 @@ class TestBindClientProvides(test_utils.PatchHelper):
 
     def test_broken(self):
         self.ep.broken()
+        _calls = [
+            mock.call("stats-port", None),
+            mock.call("stats-ip", None),
+        ]
         self.clear_flag.assert_called_once_with(
             "{}.connected".format(self.ep_name)
         )
+        self.fake_relation.to_publish_raw.__setitem__.assert_has_calls(_calls)
 
     def test_configure(self):
-        self.ep.configure('1234')
-        _calls = [mock.call("port", '1234')]
+        shared_data = {'stats-port': '1234', 'stats-ip': '10.152.183.98'}
+        self.ep.configure(shared_data)
+        _calls = [
+            mock.call("stats-port", '1234'),
+            mock.call("stats-ip", '10.152.183.98'),
+        ]
         self.fake_relation.to_publish_raw.__setitem__.assert_has_calls(_calls)

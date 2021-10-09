@@ -28,9 +28,6 @@ class BindClientProvides(reactive.Endpoint):
     def joined(self):
         reactive.set_flag(self.expand_name("{endpoint_name}.connected"))
 
-    # NOTE(gabrielcocenza): The framework doesn't pass arguments to the
-    # handler using the decorator @when_any. That is why the methods
-    # departed and broken are repetitive.
     @reactive.when("endpoint.{endpoint_name}.departed")
     def departed(self):
         reactive.clear_flag(self.expand_name("{endpoint_name}.connected"))
@@ -38,12 +35,14 @@ class BindClientProvides(reactive.Endpoint):
     @reactive.when("endpoint.{endpoint_name}.broken")
     def broken(self):
         reactive.clear_flag(self.expand_name("{endpoint_name}.connected"))
+        self.configure({'stats-port': None, 'stats-ip': None})
 
-    def configure(self, port):
-        """Configure the port to be used in the relation between units
+    def configure(self, shared_data):
+        """Configure the data shared between the two units using the interface.
 
-        :param port: port to listen
-        :type port: str
+        :param shared_data: Dict containing the key:values to be shared
+        :type shared_data: Dict
         """
         for relation in self.relations:
-            relation.to_publish_raw['port'] = port
+            for key, value in shared_data.items():
+                relation.to_publish_raw[key] = value

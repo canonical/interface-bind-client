@@ -46,7 +46,7 @@ class TestBindClientRequires(test_utils.PatchHelper):
         self.fake_relation_id = "bind-client:3"
         self.fake_relation = mock.MagicMock()
         self.fake_relation.relation_id = self.fake_relation_id
-        self.fake_relation.units = [self.fake_unit]
+        self.fake_relation.joined_units = [self.fake_unit]
 
         self.ep_name = "bind-client"
         self.ep = requires.BindClientRequires(
@@ -79,3 +79,26 @@ class TestBindClientRequires(test_utils.PatchHelper):
         self.clear_flag.assert_called_once_with(
             "{}.connected".format(self.ep_name)
         )
+
+    def test_config_default(self):
+        self.fake_unit.received_raw = {}
+        config = self.ep.get_config()
+        expected_config = {
+            self.fake_unit.unit_name: {
+                "stats-port": "8053",
+                "stats-ip": "127.0.0.1",
+            }
+        }
+
+        self.assertEqual(config, expected_config)
+
+    def test_config_changed(self):
+        self.fake_unit.received_raw = {
+            "stats-port": "1234",
+            "stats-ip": "10.152.183.50",
+        }
+        config = self.ep.get_config()
+        expected_config = {
+            self.fake_unit.unit_name: self.fake_unit.received_raw
+        }
+        self.assertEqual(config, expected_config)
