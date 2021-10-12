@@ -17,32 +17,39 @@
 # the reactive framework is not able to recognise handlers from
 # a parent class that child classes could inherit.
 
-from charms import reactive
+from charms.reactive import (
+    Endpoint,
+    clear_flag,
+    set_flag,
+    when,
+    when_any,
+)
 
 
-class BindClientProvides(reactive.Endpoint):
+class BindClientProvides(Endpoint):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    @reactive.when("endpoint.{endpoint_name}.joined")
+    @when("endpoint.{endpoint_name}.joined")
     def joined(self):
-        reactive.set_flag(self.expand_name("{endpoint_name}.connected"))
+        set_flag(self.expand_name("{endpoint_name}.connected"))
 
-    @reactive.when("endpoint.{endpoint_name}.departed")
-    def departed(self):
-        reactive.clear_flag(self.expand_name("{endpoint_name}.connected"))
+    @when_any(
+        "endpoint.{endpoint_name}.departed",
+        "endpoint.{endpoint_name}.broken"
+    )
+    def departed_or_broken(self):
+        self.configure(None, None)
+        clear_flag(self.expand_name("{endpoint_name}.connected"))
 
-    @reactive.when("endpoint.{endpoint_name}.broken")
-    def broken(self):
-        reactive.clear_flag(self.expand_name("{endpoint_name}.connected"))
-        self.configure({'stats-port': None, 'stats-ip': None})
+    def configure(self, ip, port):
+        """Configure IP and port to be used in the relation between units.
 
-    def configure(self, shared_data):
-        """Configure the data shared between the two units using the interface.
-
-        :param shared_data: Dict containing the key:values to be shared
-        :type shared_data: Dict
+        :param ip: IP passed to bind exporter to listen
+        :type ip: str
+        :param port: port to listen
+        :type port: str
         """
         for relation in self.relations:
-            for key, value in shared_data.items():
-                relation.to_publish_raw[key] = value
+            relation.to_publish_raw['ip'] = ip
+            relation.to_publish_raw['port'] = port

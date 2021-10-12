@@ -24,9 +24,13 @@ class TestRegisteredHooks(test_utils.TestRegisteredHooks):
         hook_set = {
             "when": {
                 "joined": ("endpoint.{endpoint_name}.joined",),
-                "departed": ("endpoint.{endpoint_name}.departed",),
-                "broken": ("endpoint.{endpoint_name}.broken",),
             },
+            "when_any": {
+                "departed_or_broken": (
+                    "endpoint.{endpoint_name}.departed",
+                    "endpoint.{endpoint_name}.broken",
+                ),
+            }
         }
         # test that the hooks were registered
         self.registered_hooks_test_helper(requires, hook_set, defaults)
@@ -37,8 +41,8 @@ class TestBindClientRequires(test_utils.PatchHelper):
         super().setUp()
         self._patches = {}
         self._patches_start = {}
-        self.patch_object(requires.reactive, "clear_flag")
-        self.patch_object(requires.reactive, "set_flag")
+        self.patch_object(requires, "clear_flag")
+        self.patch_object(requires, "set_flag")
 
         self.fake_unit = mock.MagicMock()
         self.fake_unit.unit_name = "my-unit/0"
@@ -68,14 +72,8 @@ class TestBindClientRequires(test_utils.PatchHelper):
             "{}.connected".format(self.ep_name)
         )
 
-    def test_departed(self):
-        self.ep.departed()
-        self.clear_flag.assert_called_once_with(
-            "{}.connected".format(self.ep_name)
-        )
-
-    def test_broken(self):
-        self.ep.broken()
+    def test_departed_or_broken(self):
+        self.ep.departed_or_broken()
         self.clear_flag.assert_called_once_with(
             "{}.connected".format(self.ep_name)
         )
@@ -85,8 +83,8 @@ class TestBindClientRequires(test_utils.PatchHelper):
         config = self.ep.get_config()
         expected_config = {
             self.fake_unit.unit_name: {
-                "stats-port": "8053",
-                "stats-ip": "127.0.0.1",
+                "port": "8053",
+                "ip": "127.0.0.1",
             }
         }
 
@@ -94,8 +92,8 @@ class TestBindClientRequires(test_utils.PatchHelper):
 
     def test_config_changed(self):
         self.fake_unit.received_raw = {
-            "stats-port": "1234",
-            "stats-ip": "10.152.183.50",
+            "port": "1234",
+            "ip": "10.152.183.50",
         }
         config = self.ep.get_config()
         expected_config = {

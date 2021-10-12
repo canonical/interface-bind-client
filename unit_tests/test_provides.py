@@ -24,9 +24,13 @@ class TestRegisteredHooks(test_utils.TestRegisteredHooks):
         hook_set = {
             "when": {
                 "joined": ("endpoint.{endpoint_name}.joined",),
-                "departed": ("endpoint.{endpoint_name}.departed",),
-                "broken": ("endpoint.{endpoint_name}.broken",),
             },
+            "when_any": {
+                "departed_or_broken": (
+                    "endpoint.{endpoint_name}.departed",
+                    "endpoint.{endpoint_name}.broken",
+                ),
+            }
         }
         # test that the hooks were registered
         self.registered_hooks_test_helper(provides, hook_set, defaults)
@@ -38,8 +42,8 @@ class TestBindClientProvides(test_utils.PatchHelper):
         super().setUp()
         self._patches = {}
         self._patches_start = {}
-        self.patch_object(provides.reactive, "clear_flag")
-        self.patch_object(provides.reactive, "set_flag")
+        self.patch_object(provides, "clear_flag")
+        self.patch_object(provides, "set_flag")
 
         self.fake_unit = mock.MagicMock()
         self.fake_unit.unit_name = "designate-bind/0"
@@ -68,17 +72,11 @@ class TestBindClientProvides(test_utils.PatchHelper):
             "{}.connected".format(self.ep_name)
         )
 
-    def test_departed(self):
-        self.ep.departed()
-        self.clear_flag.assert_called_once_with(
-            "{}.connected".format(self.ep_name)
-        )
-
-    def test_broken(self):
-        self.ep.broken()
+    def test_departed_or_broken(self):
+        self.ep.departed_or_broken()
         _calls = [
-            mock.call("stats-port", None),
-            mock.call("stats-ip", None),
+            mock.call("ip", None),
+            mock.call("port", None),
         ]
         self.clear_flag.assert_called_once_with(
             "{}.connected".format(self.ep_name)
@@ -86,10 +84,9 @@ class TestBindClientProvides(test_utils.PatchHelper):
         self.fake_relation.to_publish_raw.__setitem__.assert_has_calls(_calls)
 
     def test_configure(self):
-        shared_data = {'stats-port': '1234', 'stats-ip': '10.152.183.98'}
-        self.ep.configure(shared_data)
+        self.ep.configure('10.152.183.98', '1234')
         _calls = [
-            mock.call("stats-port", '1234'),
-            mock.call("stats-ip", '10.152.183.98'),
+            mock.call("ip", '10.152.183.98'),
+            mock.call("port", '1234'),
         ]
         self.fake_relation.to_publish_raw.__setitem__.assert_has_calls(_calls)

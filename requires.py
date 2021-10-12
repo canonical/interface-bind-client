@@ -17,25 +17,30 @@
 # the reactive framework is not able to recognise handlers from
 # a parent class that child classes could inherit.
 
-from charms import reactive
+from charms.reactive import (
+    Endpoint,
+    clear_flag,
+    set_flag,
+    when,
+    when_any,
+)
 
 
-class BindClientRequires(reactive.Endpoint):
+class BindClientRequires(Endpoint):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    @reactive.when('endpoint.{endpoint_name}.joined')
+    @when('endpoint.{endpoint_name}.joined')
     def joined(self):
-        reactive.set_flag(self.expand_name('{endpoint_name}.connected'))
+        set_flag(self.expand_name('{endpoint_name}.connected'))
 
-    @reactive.when("endpoint.{endpoint_name}.departed")
-    def departed(self):
-        reactive.clear_flag(self.expand_name("{endpoint_name}.connected"))
-
-    @reactive.when("endpoint.{endpoint_name}.broken")
-    def broken(self):
-        reactive.clear_flag(self.expand_name("{endpoint_name}.connected"))
+    @when_any(
+        "endpoint.{endpoint_name}.departed",
+        "endpoint.{endpoint_name}.broken"
+    )
+    def departed_or_broken(self):
+        clear_flag(self.expand_name("{endpoint_name}.connected"))
 
     def get_config(self):
         """
@@ -46,8 +51,8 @@ class BindClientRequires(reactive.Endpoint):
         The return value is a dict of the following form::
             {
                 'unit_name': {
-                    'stats-port': port_of_designate_bind_unit,
-                    'stats-ip': ip_of_designate_bind_unit
+                    'port': port_of_designate_bind_unit,
+                    'ip': ip_of_designate_bind_unit
                 },
                 # ...
             }
@@ -57,12 +62,12 @@ class BindClientRequires(reactive.Endpoint):
             for unit in relation.joined_units:
                 unit_name = unit.unit_name
                 configs.setdefault(
-                    unit_name, {"stats-port": "8053", "stats-ip": "127.0.0.1"}
+                    unit_name, {"port": "8053", "ip": "127.0.0.1"}
                 )
                 data = unit.received_raw
-                port = data.get('stats-port')
-                ip = data.get('stats-ip')
+                port = data.get('port')
+                ip = data.get('ip')
                 if port and ip:
-                    configs[unit_name] = {'stats-port': port, 'stats-ip': ip}
+                    configs[unit_name] = {'port': port, 'ip': ip}
 
         return configs

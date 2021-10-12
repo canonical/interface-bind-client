@@ -59,11 +59,9 @@ def config_changed():
     if reactive.is_flag_set('bind-stats.connected'):
         config = hookenv.config()
         if config.changed("stats-port"):
-            shared_data = {
-                'stats-port': hookenv.config('stats-port'),
-                'stats-ip': '127.0.0.1'
-            }
-            bind_stats_endpoint.configure(shared_data)
+            bind_stats_endpoint.configure(
+                ip='127.0.0.1', port=hookenv.config('stats-port')
+            )
 
     designate_bind.set_apparmor()
     designate_bind.render_all_configs(
