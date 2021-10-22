@@ -1,5 +1,7 @@
 charms.reactive
 flake8>=2.2.4
+# NOTE(gabrielcocenza): Mock is a dependence of the module
+# test_utils in charms_openstack.
 mock>=1.2
 stestr>=2.2.0
 git+https://github.com/openstack/charms.openstack.git#egg=charms.openstack

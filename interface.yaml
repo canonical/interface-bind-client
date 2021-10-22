@@ -1,0 +1,12 @@
+name: bind-client
+summary: Interface for intergrating bind
+maintainer: Gabriel Cocenza <gabriel.cocenza@canonical.com>
+ignore:
+  - unit_tests
+  - .stestr.conf
+  - test-requirements.txt
+  - tox.ini
+  - .gitignore
+  - .travis.yml
+  - .zuul.yaml
+  - .tox
